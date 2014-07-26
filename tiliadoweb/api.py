@@ -1,6 +1,7 @@
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 from urllib.parse import urlencode, quote as urlquote
+from base64 import b64encode
 import json
 
 LOCAL_SERVER = "http://127.0.0.1:8000/"
@@ -44,6 +45,21 @@ class TiliadoApi:
         self.username = username
         self.scope = scope
         self.token = token
+    
+    def make_request(self, path, params=None, data=None, headers=None):
+        headers = headers or {}
+        
+        if self.token and self.username:
+            #Authorization: Token  base64(username) 401f7ac837da42b97f613d789819ff93537bee6a
+            headers["Authorization"] = "Token %s %s" % (b64encode(self.username.encode("utf-8")).decode("ascii"), self.token)
+        
+        if params:
+            path = "{}?{}".format(path, urlencode(params))
+        
+        request = Request(self.root + path, data, headers)
+        response = urlopen(request)
+        data = response.read() 
+        return json.loads(data.decode("utf-8"));
 
 def main():
     api = TiliadoApi(LOCAL_ROOT)
