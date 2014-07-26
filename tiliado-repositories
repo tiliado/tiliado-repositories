@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+
+from gi.repository import Gtk
+
+win = Gtk.Window()
+win.set_title("Tiliado Repositories")
+win.set_icon_name("system-software-install")
+win.set_default_size(500, 400)
+win.connect("delete-event", Gtk.main_quit)
+win.present()
+Gtk.main()
