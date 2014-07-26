@@ -60,11 +60,17 @@ class TiliadoApi:
         response = urlopen(request)
         data = response.read() 
         return json.loads(data.decode("utf-8"));
+    
+    @property
+    def me(self):
+        return self.make_request("me/")
 
 def main():
     api = TiliadoApi(LOCAL_ROOT)
     api.login(LOCAL_API_AUTH, *TEST_USER)
     print("Auth: user = '{api.username}', scope = '{api.scope}', token = '{api.token}'".format(api=api))
+    
+    print(api.me)
 
 if __name__ == "__main__":
     main()
