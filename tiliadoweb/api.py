@@ -4,21 +4,21 @@ from urllib.parse import urlencode, quote as urlquote
 from base64 import b64encode
 import json
 
-LOCAL_SERVER = "http://127.0.0.1:8000/"
-LOCAL_ROOT = LOCAL_SERVER + "api/"
-LOCAL_API_AUTH = LOCAL_SERVER + "api-auth/obtain-token/"
+import tiliadoweb
+
 TEST_USER = "test", "test"
 
 class ApiError(Exception):
     pass
 
 class TiliadoApi:
-    def __init__(self, root, username=None, token=None):
-        self.root = root
+    def __init__(self, server, api_path, api_auth, username=None, token=None):
+        self.root = server + api_path
+        self.api_auth = server + api_auth
         self.token = token
         self.username = username
     
-    def login(self, endpoint, username, password, scope="default"):
+    def login(self, username, password, scope="default"):
         if not username:
             raise ApiError("Username field is empty.")
         if not password:
@@ -28,7 +28,7 @@ class TiliadoApi:
         
         try:
             data = urlencode({"username": username, "password": password, "scope": scope})
-            response = urlopen(endpoint, data.encode("ascii"))
+            response = urlopen(self.api_auth, data.encode("ascii"))
         except HTTPError as e:
             if e.code == 400:
                 raise ApiError("Unable to login with provided credentials.")
@@ -66,8 +66,8 @@ class TiliadoApi:
         return self.make_request("me/")
 
 def main():
-    api = TiliadoApi(LOCAL_ROOT)
-    api.login(LOCAL_API_AUTH, *TEST_USER)
+    api = TiliadoApi(tiliadoweb.DEVEL_SERVER, tiliadoweb.DEFAULT_API_PATH, tiliadoweb.DEFAULT_API_AUTH)
+    api.login(*TEST_USER)
     print("Auth: user = '{api.username}', scope = '{api.scope}', token = '{api.token}'".format(api=api))
     
     print(api.me)
