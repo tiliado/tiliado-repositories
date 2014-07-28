@@ -7,5 +7,19 @@ win.set_title("Tiliado Repositories")
 win.set_icon_name("system-software-install")
 win.set_default_size(500, 400)
 win.connect("delete-event", Gtk.main_quit)
+
+from tiliadoweb.installer import Installer
+from tiliadoweb.api import TiliadoApi
+from tiliadoweb import DEVEL_SERVER, DEFAULT_PASSWORD_RESET_PATH, DEFAULT_SIGN_UP_PATH, \
+DEFAULT_API_PATH, DEFAULT_API_AUTH
+from tiliadoweb.gui import LoginPage
+
+login_page = LoginPage(DEVEL_SERVER + DEFAULT_PASSWORD_RESET_PATH, DEVEL_SERVER + DEFAULT_SIGN_UP_PATH)
+win.add(login_page)
+login_page.show()
+
+api = TiliadoApi(DEVEL_SERVER, DEFAULT_API_PATH, DEFAULT_API_AUTH)
+installer = Installer(api, login_page)
+
 win.present()
 Gtk.main()
