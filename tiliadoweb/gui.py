@@ -25,6 +25,11 @@ class Page(Gtk.Grid):
             else:
                 self.body.attach(widget2, 1, self.line, 1, 1)
                 self.line += 1
+    
+    def clear(self):
+        for widget in self.body.get_children():
+            self.body.remove(widget)
+        self.line = 0
 
 class LoginPage(Page):
     def __init__(self, password_reset_url, sign_up_url):
@@ -58,3 +63,44 @@ class LoginPage(Page):
     def set_widgets_sensitive(self, sensitive):
         for w in self.username_entry, self.password_entry, self.sign_in_button:
             w.set_sensitive(sensitive)
+
+class RepositoriesPage(Page):
+    def __init__(self):
+        Page.__init__(self, "Tiliado Repositories")
+        
+        self.back_button = Gtk.Button.new_with_label("Back")
+        self.buttons.add(self.back_button)
+        self.ok_button = Gtk.Button.new_with_label("Continue")
+        self.buttons.add(self.ok_button)
+        self.repo = None
+        self.ok_button.set_sensitive(False)
+        self.show_all()
+    
+    def clear(self):
+        Page.clear(self)
+        self.repo = None
+        self.ok_button.set_sensitive(False)
+        
+    def set_repositories(self, repositories):
+        self.repositories = repositories
+        self.clear()
+        self.ok_button.set_sensitive(False)
+        
+        group = None
+        for index, repo in enumerate(repositories):
+            button = Gtk.RadioButton.new_with_label_from_widget(group, repo["label"])
+            button.set_vexpand(False)
+            button.connect("toggled", self.on_button_toggled, index)
+            if not group:
+                group = button
+                self.repo = repo
+                self.ok_button.set_sensitive(True)
+                button.set_active(True)
+        
+            self.add_row(button)
+            button.show()
+        
+    def on_button_toggled(self, button, index):
+        if button.get_active():
+            self.repo = self.repositories[index]
+            self.ok_button.set_sensitive(True)
