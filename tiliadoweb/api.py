@@ -64,6 +64,10 @@ class TiliadoApi:
     @property
     def me(self):
         return self.make_request("me/")
+    
+    @property
+    def repositories(self):
+        return self.make_request("repository/repositories/")
 
 def main():
     api = TiliadoApi(tiliadoweb.DEVEL_SERVER, tiliadoweb.DEFAULT_API_PATH, tiliadoweb.DEFAULT_API_AUTH)
@@ -71,6 +75,7 @@ def main():
     print("Auth: user = '{api.username}', scope = '{api.scope}', token = '{api.token}'".format(api=api))
     
     print(api.me)
+    print(api.repositories)
 
 if __name__ == "__main__":
     main()
