@@ -24,7 +24,10 @@ api = TiliadoApi(DEVEL_SERVER, DEFAULT_API_PATH, DEFAULT_API_AUTH)
 stack = Gtk.Stack(vexpand=True, hexpand=True)
 win.add(stack)
 stack.show()
-installer = Installer(api, stack, login_page, repositories_page)
+
+from xdg import BaseDirectory
+config_dir = BaseDirectory.save_config_path("tiliado")
+installer = Installer(api, config_dir, stack, login_page, repositories_page)
 
 win.present()
 Gtk.main()
