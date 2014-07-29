@@ -17,7 +17,7 @@ class Installer:
         
         self.repositories_page = repositories_page
         stack.add(repositories_page)
-        repositories_page.back_button.connect("clicked", self.on_quit_clicked)
+        repositories_page.back_button.connect("clicked", self.on_repositories_back_clicked)
         repositories_page.ok_button.connect("clicked", self.on_quit_clicked)
         
         try:
@@ -59,6 +59,12 @@ class Installer:
         except ApiError as e:
             page.set_error(str(e))
             page.set_widgets_sensitive(True)
+    
+    def on_repositories_back_clicked(self, *args):
+        self.switch_to_login()
+    
+    def switch_to_login(self):
+        self.stack.set_visible_child(self.login_page)
     
     def switch_to_repositories(self):
         self.repositories_page.set_repositories([repo for repo in self.api.repositories if repo["active"]])
