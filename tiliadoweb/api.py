@@ -82,7 +82,8 @@ class TiliadoApi:
         try:
             return self._repo_releases[key]
         except KeyError:
-            group = self._repo_releases[key] = self.make_request("repository/releases/".format(key))
+            repo_release = self._repo_releases[key] = self.make_request("repository/releases/".format(key))
+            return repo_release
    
     @property
     def distributions(self):
@@ -111,6 +112,7 @@ class TiliadoApi:
             return self._groups[key]
         except KeyError:
             group = self._groups[key] = self.make_request("auth/groups/".format(key))
+            return group
 
 def main():
     api = TiliadoApi(tiliadoweb.DEVEL_SERVER, tiliadoweb.DEFAULT_API_PATH, tiliadoweb.DEFAULT_API_AUTH)
@@ -135,7 +137,7 @@ def main():
         print("Distribution {}: {}".format(distribution["id"], api.distribution(distribution["id"])))
          
     for release in api.repo_releases:
-         print("Repo release {}: {}".format(release["id"], api.repo_release(release["id"])))
+        print("Repo release {}: {}".format(release["id"], api.repo_release(release["id"])))
     
 if __name__ == "__main__":
     main()
