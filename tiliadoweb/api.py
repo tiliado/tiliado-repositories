@@ -17,6 +17,7 @@ class TiliadoApi:
         self.api_auth = server + api_auth
         self.token = token
         self.username = username
+        self._groups = None
     
     def login(self, username, password, scope="default"):
         if not username:
@@ -71,6 +72,18 @@ class TiliadoApi:
     
     def component(self, identifier):
         return self.make_request("repository/components/{}/".format(identifier))
+    
+    @property
+    def groups(self):
+        return self.make_request("auth/groups/")
+        
+    def group(self, key):
+        if self._groups is None:
+            self._groups = {group["id"]: group for group in self.groups}
+        try:
+            return self._groups[key]
+        except KeyError:
+            group = self._groups[key] = self.make_request("auth/groups/".format(key))
 
 def main():
     api = TiliadoApi(tiliadoweb.DEVEL_SERVER, tiliadoweb.DEFAULT_API_PATH, tiliadoweb.DEFAULT_API_AUTH)
@@ -87,6 +100,9 @@ def main():
             print("Component: {}".format(component))
             for access in component["access_set"]:
                 print("Access: {}".format(access))
+                for group_pk in access["groups"]:
+                    group = api.group(group_pk)
+                    print("Group {}: {}".format(group_pk, group))
 
 if __name__ == "__main__":
     main()
