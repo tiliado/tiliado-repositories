@@ -18,6 +18,7 @@ class TiliadoApi:
         self.token = token
         self.username = username
         self._groups = None
+        self._repo_releases = None
     
     def login(self, username, password, scope="default"):
         if not username:
@@ -70,6 +71,18 @@ class TiliadoApi:
     def repositories(self):
         return self.make_request("repository/repositories/")
     
+    @property
+    def repo_releases(self):
+        return self.make_request("repository/releases/")
+    
+    def repo_release(self, key):
+        if self._repo_releases is None:
+            self._repo_releases = {i["id"]: i for i in self.repo_releases}
+        try:
+            return self._repo_releases[key]
+        except KeyError:
+            group = self._repo_releases[key] = self.make_request("repository/releases/".format(key))
+    
     def component(self, identifier):
         return self.make_request("repository/components/{}/".format(identifier))
     
@@ -104,5 +117,8 @@ def main():
                     group = api.group(group_pk)
                     print("Group {}: {}".format(group_pk, group))
 
+    for release in api.repo_releases:
+         print("Repo release {}: {}".format(release["id"], api.repo_release(release["id"])))
+    
 if __name__ == "__main__":
     main()
