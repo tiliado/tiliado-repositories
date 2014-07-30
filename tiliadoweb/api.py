@@ -68,6 +68,9 @@ class TiliadoApi:
     @property
     def repositories(self):
         return self.make_request("repository/repositories/")
+    
+    def component(self, identifier):
+        return self.make_request("repository/components/{}/".format(identifier))
 
 def main():
     api = TiliadoApi(tiliadoweb.DEVEL_SERVER, tiliadoweb.DEFAULT_API_PATH, tiliadoweb.DEFAULT_API_AUTH)
@@ -75,7 +78,15 @@ def main():
     print("Auth: user = '{api.username}', scope = '{api.scope}', token = '{api.token}'".format(api=api))
     
     print(api.me)
-    print(api.repositories)
+    
+    repositories = api.repositories
+    for repo in repositories:
+        print("Repo: {}".format(repo))
+        for pk in repo.get("component_set", ()):
+            component = api.component(pk)
+            print("Component: {}".format(component))
+            for access in component["access_set"]:
+                print("Access: {}".format(access))
 
 if __name__ == "__main__":
     main()
