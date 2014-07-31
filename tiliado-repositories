@@ -12,13 +12,14 @@ from tiliadoweb.installer import Installer
 from tiliadoweb.api import TiliadoApi
 from tiliadoweb import DEVEL_SERVER, DEFAULT_PASSWORD_RESET_PATH, DEFAULT_SIGN_UP_PATH, \
 DEFAULT_API_PATH, DEFAULT_API_AUTH
-from tiliadoweb.gui import LoginPage, RepositoriesPage
+from tiliadoweb.gui import LoginPage, RepositoriesPage, ComponentsPage
 
 login_page = LoginPage(DEVEL_SERVER + DEFAULT_PASSWORD_RESET_PATH, DEVEL_SERVER + DEFAULT_SIGN_UP_PATH)
-
 login_page.show()
 
 repositories_page = RepositoriesPage()
+components_page = ComponentsPage()
+
 
 api = TiliadoApi(DEVEL_SERVER, DEFAULT_API_PATH, DEFAULT_API_AUTH)
 stack = Gtk.Stack(vexpand=True, hexpand=True)
@@ -27,7 +28,7 @@ stack.show()
 
 from xdg import BaseDirectory
 config_dir = BaseDirectory.save_config_path("tiliado")
-installer = Installer(api, config_dir, stack, login_page, repositories_page)
+installer = Installer(api, config_dir, stack, login_page, repositories_page, components_page)
 
 win.present()
 Gtk.main()

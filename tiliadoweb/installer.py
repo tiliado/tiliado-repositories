@@ -4,8 +4,14 @@ from gi.repository import Gtk
 from tiliadoweb.api import ApiError
 
 CONFIG_FILENAME = "config.json"
+
+from collections import namedtuple
+
+Release = namedtuple("Release", "name label components")
+Component = namedtuple("Component", "name label desc groups")
+
 class Installer:
-    def __init__(self, api, config_dir, stack, login_page, repositories_page):
+    def __init__(self, api, config_dir, stack, login_page, repositories_page, components_page):
         self.api = api
         self.stack = stack
         self.config_dir = config_dir
@@ -18,7 +24,12 @@ class Installer:
         self.repositories_page = repositories_page
         stack.add(repositories_page)
         repositories_page.back_button.connect("clicked", self.on_repositories_back_clicked)
-        repositories_page.ok_button.connect("clicked", self.on_quit_clicked)
+        repositories_page.ok_button.connect("clicked", self.on_repositories_next_clicked)
+        
+        self.components_page = components_page
+        stack.add(components_page)
+        components_page.back_button.connect("clicked", self.on_components_back_clicked)
+        components_page.ok_button.connect("clicked", self.on_quit_clicked)
         
         try:
             with open(os.path.join(config_dir, CONFIG_FILENAME), "rt") as f:
@@ -63,9 +74,37 @@ class Installer:
     def on_repositories_back_clicked(self, *args):
         self.switch_to_login()
     
+    def on_repositories_next_clicked(self, *args):
+        self.switch_to_components()
+    
+    def on_components_back_clicked(self, *args):
+        self.stack.set_visible_child(self.repositories_page)
+    
     def switch_to_login(self):
         self.stack.set_visible_child(self.login_page)
     
     def switch_to_repositories(self):
         self.repositories_page.set_repositories([repo for repo in self.api.repositories if repo["active"]])
         self.stack.set_visible_child(self.repositories_page)
+    
+    def switch_to_components(self):
+        components = (self.api.component(pk) for pk in self.repositories_page.repo.get("component_set", ()))
+        groups = {i["id"]: i for i in self.api.groups}
+        releases = {
+            i["id"]:
+            Release(i["name"], "{} {}".format(self.api.distribution(i["distribution"])["label"], i["label"]), {})
+            for i in self.api.repo_releases
+        }
+        
+        for c in components:
+            if c["active"]:
+                for access in c["access_set"]:
+                    access_groups = {g: groups[g]["name"] for g in access["groups"]}
+                    component = Component(c["name"], c["label"], c["desc"], access_groups)
+                    releases[access["release"]].components[c["name"]] = component
+        
+        options = {r.name: r for r in releases.values() if r.components}
+        del groups, components, releases
+        
+        self.components_page.set_data(self.api.me["groups"], options)
+        self.stack.set_visible_child(self.components_page)
