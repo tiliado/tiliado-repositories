@@ -13,12 +13,13 @@ from tiliadoweb.api import TiliadoApi
 from tiliadoweb import DEVEL_SERVER, DEFAULT_PASSWORD_RESET_PATH, DEFAULT_SIGN_UP_PATH, \
 DEFAULT_API_PATH, DEFAULT_API_AUTH
 from tiliadoweb.gui import LoginPage, RepositoriesPage, ComponentsPage
+from tiliadoweb.dists import guess_dist
 
 login_page = LoginPage(DEVEL_SERVER + DEFAULT_PASSWORD_RESET_PATH, DEVEL_SERVER + DEFAULT_SIGN_UP_PATH)
 login_page.show()
 
 repositories_page = RepositoriesPage()
-components_page = ComponentsPage()
+components_page = ComponentsPage(guess_dist())
 
 
 api = TiliadoApi(DEVEL_SERVER, DEFAULT_API_PATH, DEFAULT_API_AUTH)
