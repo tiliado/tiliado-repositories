@@ -269,3 +269,28 @@ class ComponentsPage(Page):
     
     def _update_components(self):
         pass
+
+class SummaryPage(Page):
+    def __init__(self, ):
+        Page.__init__(self, "Summary")
+        
+        self.back_button = Gtk.Button.new_with_label("Back")
+        self.buttons.add(self.back_button)
+        self.ok_button = Gtk.Button.new_with_label("Install")
+        self.buttons.add(self.ok_button)
+        self.show_all()
+    
+    def set_data(self, repo):
+        self.clear()
+        self.add_row(Gtk.Label(label="Tiliado Repositories Installer will carry out these actions:", halign=Gtk.Align.START, margin_bottom=15))
+        bullet = "\u2022"
+        for line in (
+            'Add {} repository to your software sources.'.format(repo),
+            'Import signing key for {} repository.'.format(repo),
+            'Update package database.',
+        ):
+            self.add_row(Gtk.Label(label=bullet), Gtk.Label(label=line, halign=Gtk.Align.START))
+        
+        self.add_row(Gtk.Label(label="You will be asked for authorization of a privileged user.",
+            halign=Gtk.Align.START, margin_top=15))
+        self.show_all()
