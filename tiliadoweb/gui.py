@@ -127,8 +127,8 @@ class ComponentsPage(Page):
         self.dist_entry.connect("changed", self.on_dist_entry_changed)
         self.dist_label = Gtk.Label(label="Distribution:")
         self.add_row(self.dist_label, self.dist_entry)
-        self.no_dist_label = Gtk.Label(label="<b>There are no components in this repository.</b>", use_markup=True)
-        self.add_row(self.no_dist_label)
+        self.top_label = Gtk.Label(use_markup=True)
+        self.add_row(self.top_label)
         
         self.option_widgets = []
         self.clear()
@@ -162,7 +162,7 @@ class ComponentsPage(Page):
         self.clear()
         self.ok_button.set_sensitive(False)
         if options:
-            self.no_dist_label.hide()
+            self.top_label.hide()
             self.dist_entry.show()
             self.dist_label.show()
             
@@ -180,7 +180,8 @@ class ComponentsPage(Page):
         else:
             self.dist_entry.hide()
             self.dist_label.hide()
-            self.no_dist_label.show()
+            self.top_label.set_markup("<b>There are no components in this repository.</b>")
+            self.top_label.show()
     
     def _create_option(self, components, pk, radio_group, active=None, indent=0):
         c = components.get(pk)
@@ -243,9 +244,15 @@ class ComponentsPage(Page):
         stable = self._create_option(components, "stable", None)
         
         if stable:
-            hotfix = self._create_option(components, "hotfix", False, active=True, indent=25)
-            beta = self._create_option(components, "beta", False, active=True, indent=25)
+            for key in "hotfix", "beta":
+                self._create_option(components, key, False, active=True, indent=25)
             devel = self._create_option(components, "devel", stable.button)
+        
+        else:
+            self.top_label.set_markup("<b>There are no stable builds for this distribution.</b>")
+            self.top_label.show()
+            for key in "beta", "devel":
+                self._create_option(components, key, False)
         
         self._update_ok_button()
     
