@@ -120,6 +120,9 @@ class TiliadoApi:
     
     def list_products(self, **params):
         return self.make_request("repository/products/", params=params)
+        
+    def list_packages(self, **params):
+        return self.make_request("repository/packages/", params=params)
     
 def main():
     api = TiliadoApi(tiliadoweb.DEVEL_SERVER, tiliadoweb.DEFAULT_API_PATH, tiliadoweb.DEFAULT_API_AUTH)
@@ -134,6 +137,7 @@ def main():
     repositories = api.repositories
     for repo in repositories:
         print("Repo: {}".format(repo))
+        product = None
         for product in api.list_products(repository=repo["id"]):
             print("Product: {}".format(product))
         
@@ -145,6 +149,12 @@ def main():
                 for group_pk in access["groups"]:
                     group = api.group(group_pk)
                     print("Group {}: {}".format(group_pk, group))
+                release = access["release"]
+                if product:
+                    for pkg_name in product["packages"].split(","):
+                        packages = api.list_packages(repository=repo["id"], component=pk, release=release, name=pkg_name)
+                        for package in packages:
+                            print("Package: {}".format(package["id"]))
 
     for distribution in api.distributions:
         print("Distribution {}: {}".format(distribution["id"], api.distribution(distribution["id"])))
