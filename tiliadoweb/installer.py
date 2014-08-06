@@ -12,7 +12,7 @@ Component = namedtuple("Component", "name label desc groups")
 
 class Installer:
     def __init__(self, api, config_dir, stack, login_page, repositories_page, components_page,
-            summary_page):
+            products_page, summary_page):
         self.api = api
         self.stack = stack
         self.config_dir = config_dir
@@ -31,6 +31,11 @@ class Installer:
         stack.add(components_page)
         components_page.back_button.connect("clicked", self.on_components_back_clicked)
         components_page.ok_button.connect("clicked", self.on_components_next_clicked)
+       
+        self.products_page = products_page
+        stack.add(products_page)
+        products_page.back_button.connect("clicked", self.on_products_back_clicked)
+        products_page.ok_button.connect("clicked", self.on_products_next_clicked)
         
         self.summary_page = summary_page
         stack.add(summary_page)
@@ -87,10 +92,16 @@ class Installer:
         self.stack.set_visible_child(self.repositories_page)
     
     def on_components_next_clicked(self, *args):
+        self.switch_to_products()
+    
+    def on_products_back_clicked(self, *args):
+        self.stack.set_visible_child(self.components_page)
+    
+    def on_products_next_clicked(self, *args):
         self.switch_to_summary()
         
     def on_summary_back_clicked(self, *args):
-        self.stack.set_visible_child(self.components_page)
+        self.stack.set_visible_child(self.products_page)
     
     def switch_to_login(self):
         self.stack.set_visible_child(self.login_page)
@@ -101,6 +112,7 @@ class Installer:
     
     def switch_to_components(self):
         components = (self.api.component(pk) for pk in self.repositories_page.repo.get("component_set", ()))
+        self.components_id = {}
         groups = {i["id"]: i for i in self.api.groups}
         releases = {
             i["id"]:
@@ -108,19 +120,51 @@ class Installer:
             for i in self.api.repo_releases
         }
         
+        self.releases_id = {r.name: r_id for (r_id, r) in releases.items()}
+        
         for c in components:
             if c["active"]:
+                self.components_id[c["name"]] = c["id"]
                 for access in c["access_set"]:
                     access_groups = {g: groups[g]["name"] for g in access["groups"]}
                     component = Component(c["name"], c["label"], c["desc"], access_groups)
                     releases[access["release"]].components[c["name"]] = component
         
         options = {r.name: r for r in releases.values() if r.components}
+        
         del groups, components, releases
         
         self.components_page.set_data(self.api.me["groups"], options)
         self.stack.set_visible_child(self.components_page)
     
+    def switch_to_products(self):
+        available_products = []
+        repo_id = self.repositories_page.repo["id"]
+        release_id = self.releases_id[self.components_page.dist]
+        
+        for product in self.api.list_products(repository=repo_id):
+            for pkg_name in product["packages"].split(","):
+                for component in self.components_page.enabled_components:
+                    component_id = self.components_id[component]
+                    packages = self.api.list_packages(repository=repo_id, component=component_id, release=release_id, name=pkg_name)
+                    if packages:
+                        # Success: Package found, no need to examine other components
+                        break
+                else:
+                    # Failure: Package not found in any component, no need to examine other packages
+                    break
+            else:
+                # Success: All packages checks were successful
+                available_products.append(product)
+        
+        self.products = {p["id"]: p for p in available_products}
+        self.products_page.set_data(available_products)
+        if available_products:
+            self.stack.set_visible_child(self.products_page)
+        else:
+            self.switch_to_summary()
+        
     def switch_to_summary(self):
-        self.summary_page.set_data(self.repositories_page.repo["label"])
+        products = [self.products[p]["name"] for p in self.products_page.selected_products]
+        self.summary_page.set_data(self.repositories_page.repo["label"], products)
         self.stack.set_visible_child(self.summary_page)

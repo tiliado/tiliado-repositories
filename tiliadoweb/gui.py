@@ -272,6 +272,49 @@ class ComponentsPage(Page):
         
         self._update_ok_button()
 
+class ProductsPage(Page):
+    def __init__(self):
+        Page.__init__(self, "Packages")
+        self.back_button = Gtk.Button.new_with_label("Back")
+        self.buttons.add(self.back_button)
+        self.ok_button = Gtk.Button.new_with_label("Continue")
+        self.buttons.add(self.ok_button)
+        self.selected_products = set()
+        self._buttons = []
+        self.show_all()
+    
+    def clear(self):
+        for button in self._buttons:
+            button.disconnect_by_func(self.on_button_toggled)
+        self.selected_products.clear()
+        Page.clear(self)
+    
+    def set_data(self, products):
+        self.clear()
+        top_label = Gtk.Label(label="Choose which packages do you want to install.", margin_bottom=5)
+        top_label.show()
+        self.add_row(top_label)
+        
+        for p in sorted(products, key=lambda p: p["name"]):
+            button = Gtk.CheckButton.new_with_label("<b>{}</b>".format(escape_text(p["name"])))
+            button.get_child().set_use_markup(True)
+            button.connect("toggled", self.on_button_toggled, p["id"])
+            button.set_active(p["auto_select"])
+            button.show()
+            self._buttons.append(button)
+            self.add_row(button)
+            desc = Gtk.Label.new(p["description"])
+            desc.set_halign(Gtk.Align.START)
+            desc.set_margin_left(25)
+            desc.show()
+            self.add_row(desc)
+    
+    def on_button_toggled(self, button, key):
+        if button.get_active():
+            self.selected_products.add(key)
+        else:
+            self.selected_products.remove(key)
+        
 class SummaryPage(Page):
     def __init__(self, ):
         Page.__init__(self, "Summary")
@@ -282,15 +325,33 @@ class SummaryPage(Page):
         self.buttons.add(self.ok_button)
         self.show_all()
     
-    def set_data(self, repo):
+    def set_data(self, repo, products):
+        products.sort()
+        if len(products) >= 2:
+            products = " and ".join((", ".join(products[:-1]), products[-1]))
+        elif products:
+            products = products[0]
+        else:
+            products = None
+        
         self.clear()
         self.add_row(Gtk.Label(label="Tiliado Repositories Installer will carry out these actions:", halign=Gtk.Align.START, margin_bottom=15))
         bullet = "\u2022"
-        for line in (
+        
+        lines = []
+        if products:
+            lines.append('Try to remove old packages to prevent conflicts.')
+        
+        lines.extend((
             'Add {} repository to your software sources.'.format(repo),
             'Import signing key for {} repository.'.format(repo),
             'Update package database.',
-        ):
+        ))
+        
+        if products:
+            lines.append('Install {}.'.format(products))
+        
+        for line in lines:
             self.add_row(Gtk.Label(label=bullet), Gtk.Label(label=line, halign=Gtk.Align.START))
         
         self.add_row(Gtk.Label(label="You will be asked for authorization of a privileged user.",
