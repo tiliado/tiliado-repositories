@@ -113,7 +113,14 @@ class TiliadoApi:
         except KeyError:
             group = self._groups[key] = self.make_request("auth/groups/".format(key))
             return group
-
+    
+    @property
+    def all_products(self):
+        return self.make_request("repository/products/")
+    
+    def list_products(self, **params):
+        return self.make_request("repository/products/", params=params)
+    
 def main():
     api = TiliadoApi(tiliadoweb.DEVEL_SERVER, tiliadoweb.DEFAULT_API_PATH, tiliadoweb.DEFAULT_API_AUTH)
     api.login(*TEST_USER)
@@ -121,9 +128,15 @@ def main():
     
     print(api.me)
     
+    for product in api.all_products:
+        print("Product: {}".format(product))
+    
     repositories = api.repositories
     for repo in repositories:
         print("Repo: {}".format(repo))
+        for product in api.list_products(repository=repo["id"]):
+            print("Product: {}".format(product))
+        
         for pk in repo.get("component_set", ()):
             component = api.component(pk)
             print("Component: {}".format(component))
