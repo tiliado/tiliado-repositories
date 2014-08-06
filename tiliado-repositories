@@ -28,6 +28,12 @@ stack = Gtk.Stack(vexpand=True, hexpand=True)
 win.add(stack)
 stack.show()
 
+try:
+    stack.set_transition_duration(2 * stack.get_transition_duration())
+    stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+except AttributeError:
+    pass
+
 from xdg import BaseDirectory
 config_dir = BaseDirectory.save_config_path("tiliado")
 installer = Installer(api, config_dir, stack, login_page, repositories_page, components_page, products_page, summary_page)
