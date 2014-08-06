@@ -101,7 +101,10 @@ class Installer:
         self.switch_to_summary()
         
     def on_summary_back_clicked(self, *args):
-        self.stack.set_visible_child(self.products_page)
+        if self.products:
+            self.stack.set_visible_child(self.products_page)
+        else:
+            self.stack.set_visible_child(self.components_page)
     
     def switch_to_login(self):
         self.stack.set_visible_child(self.login_page)
