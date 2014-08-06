@@ -264,7 +264,6 @@ class ComponentsPage(Page):
         self._update_options()
             
     def on_button_toggled(self, button, key):
-        print(self.enabled_components)
         if button.get_active():
             self.enabled_components.add(key)
         else:
@@ -272,10 +271,6 @@ class ComponentsPage(Page):
             self.ok_button.set_sensitive(True)
         
         self._update_ok_button()
-        print(self.enabled_components)
-    
-    def _update_components(self):
-        pass
 
 class SummaryPage(Page):
     def __init__(self, ):
