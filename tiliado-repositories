@@ -1,5 +1,12 @@
 #!/usr/bin/python3
 
+import sys
+if len(sys.argv) > 1:
+    from tiliadoweb.backend import main, log
+    log("+ %s" % sys.argv)
+    main()
+    sys.exit(0)
+
 from gi.repository import Gtk
 
 win = Gtk.Window()
