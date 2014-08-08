@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import sys
+sys.dont_write_bytecode = True
+
 if len(sys.argv) > 1:
     from tiliadoweb.backend import main, log
     log("+ %s" % sys.argv)
