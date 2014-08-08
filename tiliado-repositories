@@ -18,13 +18,13 @@ win.connect("delete-event", Gtk.main_quit)
 
 from tiliadoweb.installer import Installer
 from tiliadoweb.api import TiliadoApi
-from tiliadoweb import DEVEL_PROTOCOL, DEVEL_SERVER, DEFAULT_PASSWORD_RESET_PATH, DEFAULT_SIGN_UP_PATH, \
-DEFAULT_API_PATH, DEFAULT_API_AUTH
+from tiliadoweb.config import PROTOCOL, HOST, SERVER, PASSWORD_RESET_PATH,SIGN_UP_PATH, \
+API_PATH, API_AUTH
 from tiliadoweb.gui import \
     LoginPage, RepositoriesPage, ComponentsPage, ProductsPage, SummaryPage, ProgressPage
 from tiliadoweb.dists import guess_dist
 
-login_page = LoginPage(DEVEL_SERVER + DEFAULT_PASSWORD_RESET_PATH, DEVEL_SERVER + DEFAULT_SIGN_UP_PATH)
+login_page = LoginPage(SERVER + PASSWORD_RESET_PATH, SERVER + SIGN_UP_PATH)
 login_page.show()
 
 repositories_page = RepositoriesPage()
@@ -33,7 +33,7 @@ products_page = ProductsPage()
 summary_page = SummaryPage()
 progress_page = ProgressPage()
 
-api = TiliadoApi("{}://{}/".format(DEVEL_PROTOCOL, DEVEL_SERVER), DEFAULT_API_PATH, DEFAULT_API_AUTH)
+api = TiliadoApi(SERVER, API_PATH, API_AUTH)
 stack = Gtk.Stack(vexpand=True, hexpand=True)
 win.add(stack)
 stack.show()

@@ -3,7 +3,7 @@ import sys
 import json
 from queue import Queue, Empty
 from gi.repository import Gtk, GLib
-from tiliadoweb import DEVEL_PROTOCOL, DEVEL_SERVER
+from tiliadoweb.config import PROTOCOL, HOST
 from tiliadoweb.api import ApiError
 from tiliadoweb.worker import run_command
 
@@ -212,8 +212,8 @@ class Installer:
             "-v", variants,
             "-p", project,
             "-i", packages,
-            "--server", DEVEL_SERVER,
-            "--protocol", DEVEL_PROTOCOL,
+            "--server", HOST,
+            "--protocol", PROTOCOL,
         ]
         
         self._worker = run_command(args, self.on_progress_output, self.on_progress_done)
