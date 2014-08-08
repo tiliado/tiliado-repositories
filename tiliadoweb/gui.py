@@ -357,3 +357,50 @@ class SummaryPage(Page):
         self.add_row(Gtk.Label(label="You will be asked for authorization of a privileged user.",
             halign=Gtk.Align.START, margin_top=15))
         self.show_all()
+
+class ProgressPage(Page):
+    def __init__(self, ):
+        Page.__init__(self, "Installation progress")
+        self.body.set_vexpand(True)
+        self.body.set_hexpand(True)
+        self.body.set_halign(Gtk.Align.FILL)
+        self.body.set_valign(Gtk.Align.FILL)
+        
+        self.message = Gtk.Label(label="", use_markup=True, no_show_all=True)
+        self.add_row(self.message)
+        self.output = Gtk.TextView(vexpand=True, hexpand=True, editable=False)
+        self.buffer = self.output.get_buffer()
+        scroll = Gtk.ScrolledWindow(vexpand=True, hexpand=True)
+        scroll.add(self.output)
+        self.add_row(scroll)
+        
+        self.back_button = Gtk.Button.new_with_label("Back")
+        self.buttons.add(self.back_button)
+        self.quit_button = Gtk.Button.new_with_label("Quit")
+        self.buttons.add(self.quit_button)
+        
+        self.show_all()
+    
+    def clear(self):
+        self.set_message("Installation is in progress...")
+        self.buffer.set_text("")
+    
+    def write(self, data):
+        buf = self.buffer
+        end = buf.get_end_iter()
+        buf.insert(end, data)
+        end = buf.get_end_iter()
+        self.output.scroll_to_iter(end, 0.0, False, 0, 0);
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+    
+    def set_message(self, text=None):
+        if text:
+            self.message.set_label(text)
+            self.message.show()
+        else:
+            self.message.hide()
+    
+    def set_sensitive(self, sensitive):
+        for w in (self.back_button, self.back_button):
+            w.set_sensitive(sensitive)

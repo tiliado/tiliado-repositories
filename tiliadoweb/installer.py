@@ -12,7 +12,7 @@ Component = namedtuple("Component", "name label desc groups")
 
 class Installer:
     def __init__(self, api, config_dir, stack, login_page, repositories_page, components_page,
-            products_page, summary_page):
+            products_page, summary_page, progress_page):
         self.api = api
         self.stack = stack
         self.config_dir = config_dir
@@ -40,7 +40,12 @@ class Installer:
         self.summary_page = summary_page
         stack.add(summary_page)
         summary_page.back_button.connect("clicked", self.on_summary_back_clicked)
-        summary_page.ok_button.connect("clicked", self.on_quit_clicked)
+        summary_page.ok_button.connect("clicked", self.on_summary_next_clicked)
+        
+        self.progress_page = progress_page
+        stack.add(progress_page)
+        progress_page.back_button.connect("clicked", self.on_progress_back_clicked)
+        progress_page.quit_button.connect("clicked", self.on_quit_clicked)
         
         try:
             with open(os.path.join(config_dir, CONFIG_FILENAME), "rt") as f:
@@ -105,6 +110,12 @@ class Installer:
             self.stack.set_visible_child(self.products_page)
         else:
             self.stack.set_visible_child(self.components_page)
+    
+    def on_summary_next_clicked(self, *args):
+        self.switch_to_progress()
+    
+    def on_progress_back_clicked(self, *args):
+        self.stack.set_visible_child(self.summary_page)
     
     def switch_to_login(self):
         self.stack.set_visible_child(self.login_page)
@@ -171,3 +182,7 @@ class Installer:
         products = [self.products[p]["name"] for p in self.products_page.selected_products]
         self.summary_page.set_data(self.repositories_page.repo["label"], products)
         self.stack.set_visible_child(self.summary_page)
+    
+    def switch_to_progress(self):
+        self.progress_page.clear()
+        self.stack.set_visible_child(self.progress_page)
