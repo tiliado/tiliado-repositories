@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Tiliado Repositories
+Comment=Install selected software from Tiliado Repositories
+Categories=System;
+Exec=tiliado-repositories
+Terminal=false
+Type=Application
+Icon=system-software-install
+StartupNotify=true
