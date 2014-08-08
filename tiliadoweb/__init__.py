@@ -1,4 +1,5 @@
-DEVEL_SERVER = "http://127.0.0.1:8000/"
+DEVEL_PROTOCOL = "http"
+DEVEL_SERVER = "127.0.0.1:8000"
 DEFAULT_SIGN_UP_PATH = "accounts/signup/"
 DEFAULT_PASSWORD_RESET_PATH = "accounts/password/reset/"
 DEFAULT_API_PATH = "api/"

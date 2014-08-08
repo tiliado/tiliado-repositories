@@ -1,19 +1,24 @@
 import os
+import sys
 import json
-from gi.repository import Gtk
+from queue import Queue, Empty
+from gi.repository import Gtk, GLib
+from tiliadoweb import DEVEL_PROTOCOL, DEVEL_SERVER
 from tiliadoweb.api import ApiError
+from tiliadoweb.worker import run_command
 
 CONFIG_FILENAME = "config.json"
 
 from collections import namedtuple
 
-Release = namedtuple("Release", "name label components")
+Release = namedtuple("Release", "name distribution label components")
 Component = namedtuple("Component", "name label desc groups")
 
 class Installer:
-    def __init__(self, api, config_dir, stack, login_page, repositories_page, components_page,
+    def __init__(self, api, installer, config_dir, stack, login_page, repositories_page, components_page,
             products_page, summary_page, progress_page):
         self.api = api
+        self.installer = installer
         self.stack = stack
         self.config_dir = config_dir
         
@@ -130,11 +135,12 @@ class Installer:
         groups = {i["id"]: i for i in self.api.groups}
         releases = {
             i["id"]:
-            Release(i["name"], "{} {}".format(self.api.distribution(i["distribution"])["label"], i["label"]), {})
+            Release(i["name"], self.api.distribution(i["distribution"])["name"], "{} {}".format(self.api.distribution(i["distribution"])["label"], i["label"]), {})
             for i in self.api.repo_releases
         }
         
         self.releases_id = {r.name: r_id for (r_id, r) in releases.items()}
+        self.releases_dists = {r.name: r.distribution for  r in releases.values()}
         
         for c in components:
             if c["active"]:
@@ -186,3 +192,60 @@ class Installer:
     def switch_to_progress(self):
         self.progress_page.clear()
         self.stack.set_visible_child(self.progress_page)
+        self._queue = Queue()
+        GLib.idle_add(self._process_queue)
+        self.progress_page.set_sensitive(False)
+        
+        release = self.components_page.dist
+        distribution = self.releases_dists[release]
+        variants = ",".join(self.components_page.enabled_components)
+        project = self.repositories_page.repo["project"]
+        packages = ",".join(self.products[p]["packages"] for p in self.products_page.selected_products)
+        
+        args = [
+            "pkexec",
+            self.installer,
+            "-u", self.api.username,
+            "-t", self.api.token,
+            "-d", distribution,
+            "-r", release,
+            "-v", variants,
+            "-p", project,
+            "-i", packages,
+            "--server", DEVEL_SERVER,
+            "--protocol", DEVEL_PROTOCOL,
+        ]
+        
+        self._worker = run_command(args, self.on_progress_output, self.on_progress_done)
+        
+    def on_progress_output(self, worker, line):
+        self._queue.put((True, line))
+    
+    def on_progress_done(self, worker, status):
+        self._queue.put((False, status))
+    
+    def _process_queue(self):
+        running = True
+        try:
+            while True:
+                running, data = self._queue.get_nowait()
+                if running:
+                    sys.stdout.write(data)
+                    sys.stdout.flush()
+                    self.progress_page.write(data)
+                else:
+                    self.progress_page.write("+ [Return code = {}]".format(data))
+                    self.progress_page.set_sensitive(True)
+                    
+                    if data == 0:
+                        self.progress_page.set_message("Installation has been successfully finished. You can close this window.")
+                    elif data == 127:
+                        self.progress_page.set_message("Installation has failed because of authorization error.")
+                    elif data == 126:
+                        self.progress_page.set_message("Installation has failed because of cancelled authorization.")
+                    else:
+                        self.progress_page.set_message("Installation has failed. See log for details.")
+        except Empty:
+            pass
+        
+        return running

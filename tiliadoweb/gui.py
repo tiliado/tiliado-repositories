@@ -402,5 +402,5 @@ class ProgressPage(Page):
             self.message.hide()
     
     def set_sensitive(self, sensitive):
-        for w in (self.back_button, self.back_button):
+        for w in (self.back_button, self.quit_button):
             w.set_sensitive(sensitive)

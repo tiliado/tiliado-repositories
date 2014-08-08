@@ -7,6 +7,7 @@ if len(sys.argv) > 1:
     main()
     sys.exit(0)
 
+import os
 from gi.repository import Gtk
 
 win = Gtk.Window()
@@ -17,7 +18,7 @@ win.connect("delete-event", Gtk.main_quit)
 
 from tiliadoweb.installer import Installer
 from tiliadoweb.api import TiliadoApi
-from tiliadoweb import DEVEL_SERVER, DEFAULT_PASSWORD_RESET_PATH, DEFAULT_SIGN_UP_PATH, \
+from tiliadoweb import DEVEL_PROTOCOL, DEVEL_SERVER, DEFAULT_PASSWORD_RESET_PATH, DEFAULT_SIGN_UP_PATH, \
 DEFAULT_API_PATH, DEFAULT_API_AUTH
 from tiliadoweb.gui import \
     LoginPage, RepositoriesPage, ComponentsPage, ProductsPage, SummaryPage, ProgressPage
@@ -32,7 +33,7 @@ products_page = ProductsPage()
 summary_page = SummaryPage()
 progress_page = ProgressPage()
 
-api = TiliadoApi(DEVEL_SERVER, DEFAULT_API_PATH, DEFAULT_API_AUTH)
+api = TiliadoApi("{}://{}/".format(DEVEL_PROTOCOL, DEVEL_SERVER), DEFAULT_API_PATH, DEFAULT_API_AUTH)
 stack = Gtk.Stack(vexpand=True, hexpand=True)
 win.add(stack)
 stack.show()
@@ -45,7 +46,8 @@ except AttributeError:
 
 from xdg import BaseDirectory
 config_dir = BaseDirectory.save_config_path("tiliado")
-installer = Installer(api, config_dir, stack, login_page, repositories_page, components_page, products_page, summary_page, progress_page)
+installer = os.path.abspath(__file__)
+installer = Installer(api, installer, config_dir, stack, login_page, repositories_page, components_page, products_page, summary_page, progress_page)
 
 win.present()
 Gtk.main()
