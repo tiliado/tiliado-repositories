@@ -1,16 +1,21 @@
-from . import devel
-try:
-    from . import production
-except ImportError:
-    production = object()
+SIGN_UP_PATH = "accounts/signup/"
+PASSWORD_RESET_PATH = "accounts/password/reset/"
+API_PATH = "api/"
+API_AUTH = "api-auth/obtain-token/"
 
-def get_config(key):
-    return getattr(production, key, getattr(devel, key))
+def _join_config():
+    import sys
+    import os
+    from importlib import import_module
+    
+    config_module = os.environ.get("TILIADO_REPOSITORIES_CONFIG", ".production")
+    config = import_module(config_module, __name__)
+    self = sys.modules[__name__]
+    
+    for key in dir(config):
+        if not key.startswith("_"):
+            setattr(self, key, getattr(config, key))
 
-PROTOCOL = get_config("PROTOCOL")
-HOST = get_config("HOST")
+_join_config()
+
 SERVER = "{}://{}/".format(PROTOCOL, HOST)
-SIGN_UP_PATH = get_config("SIGN_UP_PATH")
-PASSWORD_RESET_PATH = get_config("PASSWORD_RESET_PATH")
-API_PATH = get_config("API_PATH")
-API_AUTH = get_config("API_AUTH")
