@@ -26,10 +26,17 @@ def write_file(filename, data, dry_run=False):
 class BaseBackend:
     def __init__(self, dry_run=False):
         self.dry_run = dry_run
+    
+    def prepare(self):
+        pass
 
 class DebBackend(BaseBackend):
     DEFAULT_KEY = "40554B8FA5FE6F6A"
     
+    def prepare(self):
+        self.update_db()
+        self.install_packages(["apt-transport-https"])
+     
     def install_packages(self, packages):
             argv = ["apt-get", "install", "-y"] + packages
             exec_and_collects(argv, dry_run=self.dry_run)
@@ -77,6 +84,8 @@ def install(server, protocol, username, token, project, distribution, release, v
         sys.exit(2)
     
     try:
+        backend.prepare()
+        
         if install:
             install = install.split(",")
             backend.remove_packages(install)
