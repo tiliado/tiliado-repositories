@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from urllib.error import HTTPError
 from queue import Queue, Empty
 from gi.repository import Gtk, GLib
 from tiliadoweb.config import PROTOCOL, HOST
@@ -64,7 +65,10 @@ class Installer:
         api.username = self.config.get("username")
         api.token = self.config.get("token")
         if api.username and api.token:
-            self.switch_to_repositories()
+            try:
+                self.switch_to_repositories()
+            except HTTPError:
+                self.switch_to_login()
     
     def save_config(self):
         with open(os.path.join(self, self.config_dir, CONFIG_FILENAME), "wt") as f:
