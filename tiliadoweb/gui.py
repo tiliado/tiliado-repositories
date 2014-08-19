@@ -195,6 +195,8 @@ class ComponentsPage(Page):
             button = Gtk.CheckButton.new_with_label("Include <b>{}</b>".format(escape_text(c.label)))
             if access:
                 button.set_active(active)
+                if active:
+                    self.enabled_components.add(pk)
         else:
             button = Gtk.RadioButton.new_with_label_from_widget(radio_group, "<b>{}</b>".format(escape_text(c.label)))
             
@@ -251,8 +253,9 @@ class ComponentsPage(Page):
         else:
             self.top_label.set_markup("<b>There are no stable builds for this distribution.</b>")
             self.top_label.show()
+            active = True
             for key in "beta", "devel":
-                self._create_option(components, key, False)
+                active = self._create_option(components, key, False, active=active) is None
         
         self._update_ok_button()
     
