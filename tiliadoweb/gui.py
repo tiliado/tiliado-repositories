@@ -357,8 +357,8 @@ class SummaryPage(Page):
         for line in lines:
             self.add_row(Gtk.Label(label=bullet), Gtk.Label(label=line, halign=Gtk.Align.START))
         
-        self.add_row(Gtk.Label(label="You will be asked for authorization of a privileged user.",
-            halign=Gtk.Align.START, margin_top=15))
+        self.add_row(Gtk.Label(label="<b>You will be asked for authorization of a privileged user.</b>",
+            halign=Gtk.Align.START, margin_top=15, use_markup=True))
         self.show_all()
 
 class ProgressPage(Page):
