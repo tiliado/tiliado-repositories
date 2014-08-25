@@ -2,6 +2,7 @@ SIGN_UP_PATH = "accounts/signup/"
 PASSWORD_RESET_PATH = "accounts/password/reset/"
 API_PATH = "api/"
 API_AUTH = "api-auth/obtain-token/"
+VERIFY_SSL = True
 
 def _join_config():
     import sys

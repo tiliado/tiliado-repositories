@@ -4,7 +4,7 @@ import json
 from urllib.error import HTTPError
 from queue import Queue, Empty
 from gi.repository import Gtk, GLib
-from tiliadoweb.config import PROTOCOL, HOST
+from tiliadoweb.config import PROTOCOL, HOST, VERIFY_SSL
 from tiliadoweb.api import ApiError
 from tiliadoweb.worker import run_command
 
@@ -219,6 +219,9 @@ class Installer:
             "--server", HOST,
             "--protocol", PROTOCOL,
         ]
+        
+        if not VERIFY_SSL:
+            args.append("--no-verify-ssl")
         
         self._worker = run_command(args, self.on_progress_output, self.on_progress_done)
         

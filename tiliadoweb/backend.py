@@ -24,8 +24,9 @@ def write_file(filename, data, dry_run=False):
         log("*** Dry run ***\n")
 
 class BaseBackend:
-    def __init__(self, dry_run=False):
+    def __init__(self, verify_ssl=True, dry_run=False):
         self.dry_run = dry_run
+        self.verify_ssl = verify_ssl
     
     def prepare(self):
         pass
@@ -33,16 +34,23 @@ class BaseBackend:
 class DebBackend(BaseBackend):
     DEFAULT_KEY = "40554B8FA5FE6F6A"
     
+    def __init__(self, *args, **kwargs):
+        BaseBackend.__init__(self, *args, **kwargs)
+        self.apt_opts = []
+        if not self.verify_ssl:
+            log("Warning: ignoring SSL errors!")
+            self.apt_opts.extend(('-o', 'Acquire::https::Verify-Peer=false', '-o', 'Acquire::https::Verify-Host=false'))
+    
     def prepare(self):
         self.update_db()
         self.install_packages(["apt-transport-https"])
      
     def install_packages(self, packages):
-            argv = ["apt-get", "install", "-y"] + packages
+            argv = ["apt-get", "install", "-y"] + self.apt_opts + packages
             exec_and_collects(argv, dry_run=self.dry_run)
             
     def remove_packages(self, packages):
-        argv = ["apt-get", "remove", "-y"] + packages
+        argv = ["apt-get", "remove", "-y"] + self.apt_opts + packages
         try:
             exec_and_collects(argv, dry_run=self.dry_run)
         except subprocess.CalledProcessError as e:
@@ -73,12 +81,12 @@ class DebBackend(BaseBackend):
         exec_and_collects(argv, dry_run=self.dry_run)
     
     def update_db(self):
-        argv = ["apt-get", "update"]
+        argv = ["apt-get", "update"] + self.apt_opts
         exec_and_collects(argv, dry_run=self.dry_run)
 
-def install(server, protocol, username, token, project, distribution, release, variants, install=None, dry_run=False, **kwd):
+def install(server, protocol, username, token, project, distribution, release, variants, install=None, dry_run=False, no_verify_ssl=False, **kwd):
     if distribution in ("debian", "ubuntu"):
-        backend = DebBackend(dry_run=dry_run)
+        backend = DebBackend(verify_ssl = not no_verify_ssl, dry_run=dry_run)
     else:
         log("Unsupported distribution: {}".format(distribution))
         sys.exit(2)
@@ -118,6 +126,7 @@ def main():
     parser.add_argument("--protocol", type=str, default=None)
     parser.add_argument("--dry-run", action='store_true', default=False)
     parser.add_argument('-i', "--install", type=str)
+    parser.add_argument('--no-verify-ssl', action="store_true", default=False)
     args = parser.parse_args()
     
     install(**vars(args))
