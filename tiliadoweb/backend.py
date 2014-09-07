@@ -41,10 +41,6 @@ class DebBackend(BaseBackend):
             log("Warning: ignoring SSL errors!")
             self.apt_opts.extend(('-o', 'Acquire::https::Verify-Peer=false', '-o', 'Acquire::https::Verify-Host=false'))
     
-    def prepare(self):
-        self.update_db()
-        self.install_packages(["apt-transport-https"])
-     
     def install_packages(self, packages):
             argv = ["apt-get", "install", "-y"] + self.apt_opts + packages
             exec_and_collects(argv, dry_run=self.dry_run)
