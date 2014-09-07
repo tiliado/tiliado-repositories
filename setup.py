@@ -3,7 +3,7 @@
 from distutils.core import setup
 setup(
     name='tiliado-repositories',
-    version='0.1',
+    version='0.1.1',
     packages=['tiliadoweb', 'tiliadoweb.config'],
     scripts=['tiliado-repositories'],
     data_files=[("share/applications", ["tiliado-repositories.desktop"])],
