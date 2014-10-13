@@ -80,7 +80,13 @@ class DebBackend(BaseBackend):
         argv = ["apt-get", "update"] + self.apt_opts
         exec_and_collects(argv, dry_run=self.dry_run)
 
-def install(server, protocol, username, token, project, distribution, release, variants, install=None, dry_run=False, no_verify_ssl=False, **kwd):
+def install(server, protocol, username, token, project, distribution, release, variants,
+    install=None, dry_run=False, no_verify_ssl=False, http_proxy=None, https_proxy=None,**kwd):
+    if http_proxy is not None:
+        os.environ["http_proxy"] = http_proxy
+    if https_proxy is not None:
+        os.environ["https_proxy"] = https_proxy
+    
     if distribution in ("debian", "ubuntu"):
         backend = DebBackend(verify_ssl = not no_verify_ssl, dry_run=dry_run)
     else:
@@ -120,6 +126,8 @@ def main():
     parser.add_argument('-v', "--variants", type=str, required=True)
     parser.add_argument("--server", type=str, required=True)
     parser.add_argument("--protocol", type=str, default=None)
+    parser.add_argument("--http-proxy", dest="http_proxy", type=str, default=None)
+    parser.add_argument("--https-proxy", dest="https_proxy", type=str, default=None)
     parser.add_argument("--dry-run", action='store_true', default=False)
     parser.add_argument('-i', "--install", type=str)
     parser.add_argument('--no-verify-ssl', action="store_true", default=False)

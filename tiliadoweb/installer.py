@@ -220,6 +220,12 @@ class Installer:
             "--protocol", PROTOCOL,
         ]
         
+        for key in ("http_proxy", "https_proxy"):
+            proxy = os.environ.get(key)
+            if proxy is not None:
+                args.append("--{0}".format(key.replace("_", "-")))
+                args.append(proxy)
+        
         if not VERIFY_SSL:
             args.append("--no-verify-ssl")
         
