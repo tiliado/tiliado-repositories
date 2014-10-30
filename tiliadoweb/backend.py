@@ -136,7 +136,7 @@ class YumBackend(BaseBackend):
         exec_and_collects(argv, dry_run=self.dry_run)
     
     def update_db(self):
-        argv = ["yum", "makecache"] + self.yum_opts
+        argv = ["yum", "makecache", "fast"] + self.yum_opts
         exec_and_collects(argv, dry_run=self.dry_run)
 
 def install(server, protocol, username, token, project, distribution, release, variants,
