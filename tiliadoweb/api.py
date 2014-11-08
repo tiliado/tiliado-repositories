@@ -60,9 +60,13 @@ class TiliadoApi:
             path = "{}?{}".format(path, urlencode(params))
         
         request = Request(self.root + path, data, headers)
-        response = urlopen(request)
-        data = response.read() 
-        return json.loads(data.decode("utf-8"));
+        try:
+            response = urlopen(request)
+            data = response.read() 
+            return json.loads(data.decode("utf-8"));
+        except HTTPError as e:
+            print("Server has returned an error: %s." % e.read().decode("utf-8"))
+            raise ApiError("Server has returned an error: %s." % str(e.reason).lower())
     
     @property
     def me(self):

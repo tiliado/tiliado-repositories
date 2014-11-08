@@ -8,7 +8,7 @@ from tiliadoweb.config import PROTOCOL, HOST, VERIFY_SSL
 from tiliadoweb.api import ApiError
 from tiliadoweb.worker import run_command
 
-CONFIG_FILENAME = "config.json"
+CONFIG_FILENAME = "config2.json"
 
 from collections import namedtuple
 
@@ -22,6 +22,7 @@ class Installer:
         self.installer = installer
         self.stack = stack
         self.config_dir = config_dir
+        self.authorized = False
         
         self.login_page = login_page
         stack.add(login_page)
@@ -79,22 +80,27 @@ class Installer:
     
     def on_sign_in_clicked(self, *args):
         page = self.login_page
-        username = page.username_entry.get_text().strip()
-        password = page.password_entry.get_text()
-        
-        try:
-            page.set_error("Signing in ...")
-            page.set_widgets_sensitive(False)
-            self.api.login(username, password)
-            page.set_widgets_sensitive(True)
-            page.set_error()
-            self.config["username"] = self.api.username
-            self.config["token"] = self.api.token
-            self.save_config()
+        if not page.option_account.get_active():
+            self.authorized = False
             self.switch_to_repositories()
-        except ApiError as e:
-            page.set_error(str(e))
-            page.set_widgets_sensitive(True)
+        else:
+            username = page.username_entry.get_text().strip()
+            password = page.password_entry.get_text()
+            
+            try:
+                page.set_error("Signing in ...")
+                page.set_widgets_sensitive(False)
+                self.api.login(username, password)
+                page.set_widgets_sensitive(True)
+                page.set_error()
+                self.config["username"] = self.api.username
+                self.config["token"] = self.api.token
+                self.save_config()
+                self.authorized = True
+                self.switch_to_repositories()
+            except ApiError as e:
+                page.set_error(str(e))
+                page.set_widgets_sensitive(True)
     
     def on_repositories_back_clicked(self, *args):
         self.switch_to_login()
@@ -209,8 +215,6 @@ class Installer:
         args = [
             "pkexec",
             self.installer,
-            "-u", self.api.username,
-            "-t", self.api.token,
             "-d", distribution,
             "-r", release,
             "-v", variants,
@@ -219,6 +223,9 @@ class Installer:
             "--server", HOST,
             "--protocol", PROTOCOL,
         ]
+        
+        if self.api.username and self.api.token:
+            args.extend(("-u", self.api.username,  "-t", self.api.token))
         
         for key in ("http_proxy", "https_proxy"):
             proxy = os.environ.get(key)

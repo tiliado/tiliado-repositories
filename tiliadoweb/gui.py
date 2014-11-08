@@ -30,6 +30,10 @@ class Page(Gtk.Grid):
             else:
                 self.body.attach(widget2, 1, self.line, 1, 1)
                 self.line += 1
+        widgets =  [widget1]
+        if widget2:
+            widgets.append(widget2)
+        return widgets
     
     def clear(self):
         for widget in self.body.get_children():
@@ -38,36 +42,51 @@ class Page(Gtk.Grid):
 
 class LoginPage(Page):
     def __init__(self, password_reset_url, sign_up_url):
-        Page.__init__(self, "Tiliado Account")
+        Page.__init__(self, "Repository Access")
         
+        self.option_anonymous = Gtk.RadioButton.new_with_label_from_widget(None, "Anonymous Access")
+        self.option_account = Gtk.RadioButton.new_with_label_from_widget(self.option_anonymous, "Access with Tiliado Account")
+        self.option_anonymous.connect("toggled", self.on_button_toggled)
+        self.option_account.connect("toggled", self.on_button_toggled)
+        self.add_row(self.option_anonymous)
+        self.add_row(self.option_account)
         self.password_reset_url = password_reset_url
         self.sign_up_url = sign_up_url
+        self.login_widgets = []
         
         self.message = Gtk.Label(label="", margin_bottom=15, justify=Gtk.Justification.CENTER)
         self.set_error()
-        self.add_row(self.message)
+        self.login_widgets.extend(self.add_row(self.message))
         self.username_entry = Gtk.Entry(hexpand=True, halign=Gtk.Align.CENTER)
-        self.add_row(Gtk.Label(label="Username:"), self.username_entry)
+        self.login_widgets.extend(self.add_row(Gtk.Label(label="Username:"), self.username_entry))
         self.password_entry = Gtk.Entry(hexpand=True, halign=Gtk.Align.CENTER, input_purpose=Gtk.InputPurpose.PASSWORD, visibility=False)
-        self.add_row(Gtk.Label(label="Password:"), self.password_entry)
-        self.add_row(Gtk.Label(label='<a href="{}">Forgot password?</a>'.format(password_reset_url), use_markup=True, margin_top=15))
-        self.add_row(Gtk.Label(label='<a href="{}">Don\'t have an account?</a>'.format(sign_up_url), use_markup=True))
+        self.login_widgets.extend(self.add_row(Gtk.Label(label="Password:"), self.password_entry))
+        self.login_widgets.extend(self.add_row(Gtk.Label(label='<a href="{}">Forgot password?</a>'.format(password_reset_url), use_markup=True, margin_top=15)))
+        self.login_widgets.extend(self.add_row(Gtk.Label(label='<a href="{}">Don\'t have an account?</a>'.format(sign_up_url), use_markup=True)))
         
         self.quit_button = Gtk.Button.new_with_label("Quit")
         self.buttons.add(self.quit_button)
-        self.sign_in_button = Gtk.Button.new_with_label("Sign in")
+        self.sign_in_button = Gtk.Button.new_with_label("Continue")
         self.buttons.add(self.sign_in_button)
         
         self.show_all()
+        for w in self.login_widgets:
+            w.hide()
     
     def set_error(self, text=None):
         self.message.set_label(text if text is not None else \
-        "Fill in credentials for your Tiliado Account to access\nTiliado Repositories.")
+        "Fill in credentials for your Tiliado Account.")
         self.message.show()
     
     def set_widgets_sensitive(self, sensitive):
         for w in self.username_entry, self.password_entry, self.sign_in_button:
             w.set_sensitive(sensitive)
+    
+    def on_button_toggled(self, button):
+        if button.get_active():
+            visible = button == self.option_account
+            for w in self.login_widgets:
+                w.set_visible(visible)
 
 class RepositoriesPage(Page):
     def __init__(self):

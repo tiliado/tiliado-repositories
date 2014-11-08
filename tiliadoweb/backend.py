@@ -60,13 +60,13 @@ class DebBackend(BaseBackend):
         if not self.dry_run:
             os.makedirs(sources_dir, exist_ok=True)
         
+        auth = "{}:{}@".format(username, token) if username and token else ""
         for product in products:
             filename = "{}/tiliado-{}.list".format(sources_dir, product)
-            apt_line = "deb {protocol}://{username}:{token}@{server}/{project}/repository/deb/ {release} {components}\n".format(
+            apt_line = "deb {protocol}://{auth}{server}/{project}/repository/deb/ {release} {components}\n".format(
                 server=server,
                 protocol=protocol,
-                username=username,
-                token=token,
+                auth=auth,
                 project=product,
                 release=dist_release,
                 components=variants)
@@ -116,14 +116,15 @@ class YumBackend(BaseBackend):
         if arch != 'x86_64':
             arch = 'i686'
         
+        auth = "{}:{}@".format(username, token) if username and token else ""
         for product in products:
             buffer = []
             for component in variants:
                 buffer.append('[{}-{}]'.format(product, component))
                 buffer.append('name={} repository, component {} ({} {})'.format(
                     product, component, dist_release, arch))
-                buffer.append('baseurl={}://{}:{}@{}/{}/repository/rpm/{}/{}/{}/'.format(
-                    protocol, username, token, server, product, dist_release, arch, component))
+                buffer.append('baseurl={}://{}{}/{}/repository/rpm/{}/{}/{}/'.format(
+                    protocol, auth, server, product, dist_release, arch, component))
                 buffer.append('enabled=1')
                 buffer.append('gpgcheck=0')
                 buffer.append('')
@@ -139,8 +140,8 @@ class YumBackend(BaseBackend):
         argv = ["yum", "makecache", "fast"] + self.yum_opts
         exec_and_collects(argv, dry_run=self.dry_run)
 
-def install(server, protocol, username, token, project, distribution, release, variants,
-    install=None, dry_run=False, no_verify_ssl=False, http_proxy=None, https_proxy=None,**kwd):
+def install(server, protocol, project, distribution, release, variants, username=None, token=None,
+    install=None, dry_run=False, no_verify_ssl=False, http_proxy=None, https_proxy=None, **kwd):
     if http_proxy is not None:
         os.environ["http_proxy"] = http_proxy
     if https_proxy is not None:
@@ -179,8 +180,8 @@ def install(server, protocol, username, token, project, distribution, release, v
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='Install repository.')
-    parser.add_argument('-u', "--username", type=str, required=True)
-    parser.add_argument('-t', "--token", type=str, required=True)
+    parser.add_argument('-u', "--username", type=str, required=False)
+    parser.add_argument('-t', "--token", type=str, required=False)
     parser.add_argument('-p', "--project", type=str, required=True)
     parser.add_argument('-d', "--distribution", type=str, required=True)
     parser.add_argument('-r', "--release", type=str, required=True)
