@@ -63,7 +63,8 @@ class DebBackend(BaseBackend):
         auth = "{}:{}@".format(username, token) if username and token else ""
         for product in products:
             filename = "{}/tiliado-{}.list".format(sources_dir, product)
-            apt_line = "deb {protocol}://{auth}{server}/{project}/repository/deb/ {release} {components}\n".format(
+            apt_line = "deb {protocol}://{auth}{server}/{project}/repository/deb/ {release} {components} # {product} ({components})\n".format(
+                product=product,
                 server=server,
                 protocol=protocol,
                 auth=auth,
