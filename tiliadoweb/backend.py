@@ -73,7 +73,7 @@ class DebBackend(BaseBackend):
             write_file(filename, apt_line, dry_run=self.dry_run)
     
     def add_key(self, key):
-        argv = ["apt-key", "adv", "--keyserver", "keyserver.ubuntu.com", "--recv-keys", key]
+        argv = ["apt-key", "adv", "--keyserver", "hkp://keyserver.ubuntu.com:80", "--recv-keys", key]
         exec_and_collects(argv, dry_run=self.dry_run)
     
     def update_db(self):
