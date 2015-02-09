@@ -141,7 +141,7 @@ class ComponentsPage(Page):
         
         self.enabled_components = set()
         self.dist = dist
-        self.add_row(Gtk.Label(label="Choose your distribution and repository components.", margin_bottom=5))
+        self.add_row(Gtk.Label(label="Choose your distribution and repository component.", margin_bottom=5))
         self.dist_entry = Gtk.ComboBoxText()
         self.dist_entry.connect("changed", self.on_dist_entry_changed)
         self.dist_label = Gtk.Label(label="Distribution:")
@@ -210,21 +210,20 @@ class ComponentsPage(Page):
         access = self.can_access(c)
         desc = Gtk.Label.new(c.desc)
         
-        if radio_group == False:
-            button = Gtk.CheckButton.new_with_label("Include <b>{}</b>".format(escape_text(c.label)))
-            if access:
-                button.set_active(active)
-                if active:
-                    self.enabled_components.add(pk)
-        else:
-            button = Gtk.RadioButton.new_with_label_from_widget(radio_group, "<b>{}</b>".format(escape_text(c.label)))
-            
-            access = self.can_access(c)
-            if access:
-                self.enabled_components.add(pk)
+        already_selected = False
+        if radio_group:
+            for item in radio_group.get_group():
+                if item.get_sensitive() and item.get_active():
+                    already_selected = True
+                    break
         
+        button = Gtk.RadioButton.new_with_label_from_widget(radio_group, "<b>{}</b>".format(escape_text(c.label)))
         if access:
             error = None
+            if not already_selected:
+                self.enabled_components.clear()
+                self.enabled_components.add(pk)
+                button.set_active(True)
         else:
             button.set_sensitive(False)
             groups = sorted(list(c.groups.values()))
@@ -262,19 +261,12 @@ class ComponentsPage(Page):
     def _update_options(self):
         self.clear()
         components = self.options[self.dist].components
-        stable = self._create_option(components, "stable", None)
         
-        if stable:
-            for key in "hotfix", "beta":
-                self._create_option(components, key, False, active=True, indent=25)
-            devel = self._create_option(components, "devel", stable.button)
-        
-        else:
-            self.top_label.set_markup("<b>There are no stable builds for this distribution.</b>")
-            self.top_label.show()
-            active = True
-            for key in "beta", "devel":
-                active = self._create_option(components, key, False, active=active) is None
+        group = None
+        for key in "stable", "hotfix", "beta", "devel":
+            option = self._create_option(components, key, group)
+            if option:
+                group = option.button
         
         self._update_ok_button()
     
@@ -287,10 +279,8 @@ class ComponentsPage(Page):
             
     def on_button_toggled(self, button, key):
         if button.get_active():
+            self.enabled_components.clear()
             self.enabled_components.add(key)
-        else:
-            self.enabled_components.remove(key)
-            self.ok_button.set_sensitive(True)
         
         self._update_ok_button()
 
