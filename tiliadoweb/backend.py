@@ -127,7 +127,9 @@ class YumBackend(BaseBackend):
                 buffer.append('baseurl={}://{}{}/{}/repository/rpm/{}/{}/{}/'.format(
                     protocol, auth, server, product, dist_release, arch, component))
                 buffer.append('enabled=1')
-                buffer.append('gpgcheck=0')
+                buffer.append('gpgcheck=1')
+                buffer.append('repo_gpgcheck=1')
+                buffer.append('enabled_metadata=1')
                 buffer.append('')
             
             filename = "{}/tiliado-{}.repo".format(sources_dir, product)
