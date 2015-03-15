@@ -129,6 +129,7 @@ class YumBackend(BaseBackend):
                 buffer.append('enabled=1')
                 buffer.append('gpgcheck=1')
                 buffer.append('repo_gpgcheck=1')
+                buffer.append('gpgkey=http://keyserver.ubuntu.com/pks/lookup?search=0x{}&op=get'.format(YumBackend.DEFAULT_KEY))
                 buffer.append('enabled_metadata=1')
                 buffer.append('')
             
@@ -140,7 +141,7 @@ class YumBackend(BaseBackend):
         exec_and_collects(argv, dry_run=self.dry_run)
     
     def update_db(self):
-        argv = ["yum", "makecache", "fast"] + self.yum_opts
+        argv = ["yum", "makecache", "fast", "-y"] + self.yum_opts
         exec_and_collects(argv, dry_run=self.dry_run)
 
 def install(server, protocol, project, distribution, release, variants, username=None, token=None,
