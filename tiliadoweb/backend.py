@@ -79,7 +79,10 @@ class DebBackend(BaseBackend):
     
     def update_db(self):
         argv = ["apt-get", "update"] + self.apt_opts
-        exec_and_collects(argv, dry_run=self.dry_run)
+        try:
+            exec_and_collects(argv, dry_run=self.dry_run)
+        except subprocess.CalledProcessError as e:
+            log("\nWarning: Database update command failed, probably because of broken repositories in your APT sources lists. Error code:".format(e.returncode))
 
 class YumBackend(BaseBackend):
     DEFAULT_KEY = "40554B8FA5FE6F6A"
