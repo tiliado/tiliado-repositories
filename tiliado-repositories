@@ -9,9 +9,14 @@ if len(sys.argv) > 1:
     main()
     sys.exit(0)
 
+
 import os
 from gi.repository import Gtk
+from tiliadoweb import gsettings
 
+
+gsettings.set_proxy_from_gsettings()
+ 
 win = Gtk.Window()
 win.set_title("Tiliado Repositories")
 win.set_icon_name("system-software-install")
