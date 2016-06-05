@@ -50,7 +50,7 @@ class DebBackend(BaseBackend):
             exec_and_collects(argv, dry_run=self.dry_run)
             
     def remove_packages(self, packages):
-        argv = ["apt-get", "remove", "-y"] + self.apt_opts + packages
+        argv = ["apt-get", "remove", "-y"] + self.apt_opts + [pkg + "*" for pkg in packages]
         try:
             exec_and_collects(argv, dry_run=self.dry_run)
         except subprocess.CalledProcessError as e:
@@ -208,7 +208,7 @@ class DnfBackend(BaseBackend):
             exec_and_collects(argv, dry_run=self.dry_run)
             
     def remove_packages(self, packages):
-        argv = ["dnf", "remove", "-y"] + self.dnf_opts + packages
+        argv = ["dnf", "remove", "-y"] + self.dnf_opts + [pkg + "*" for pkg in packages]
         try:
             exec_and_collects(argv, dry_run=self.dry_run)
         except subprocess.CalledProcessError as e:
