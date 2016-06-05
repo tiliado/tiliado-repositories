@@ -261,13 +261,13 @@ class Installer:
                     self.progress_page.set_sensitive(True)
                     
                     if data == 0:
-                        self.progress_page.set_message("Installation has been successfully finished. You can close this window.")
+                        self.progress_page.set_message("<b>Installation has been successfully finished. You can close this window.</b>")
                     elif data == 127:
-                        self.progress_page.set_message("Installation has failed because of authorization error.")
+                        self.progress_page.set_message("<b>Installation has failed because of authorization error.</b>")
                     elif data == 126:
-                        self.progress_page.set_message("Installation has failed because of cancelled authorization.")
+                        self.progress_page.set_message("<b>Installation has failed because of cancelled authorization.</b>")
                     else:
-                        self.progress_page.set_message("Installation has failed. See log for details.")
+                        self.progress_page.set_message("<b>Installation has failed. <a href=\"https://github.com/tiliado/tiliado-repositories/issues/new\">File a bug report</a> with the log bellow:</b>")
         except Empty:
             pass
         
