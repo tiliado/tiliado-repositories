@@ -22,7 +22,7 @@ class SubprocessWorker(threading.Thread):
         self.process = subprocess.Popen(self.command, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         
         while (True):
-            line = self.process.stdout.readline().decode("utf-8")
+            line = self.process.stdout.readline().decode("utf-8", errors='surrogateescape')
             if line == "":
                 break
             self.output_callback(self, line)

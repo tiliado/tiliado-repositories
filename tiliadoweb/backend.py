@@ -19,7 +19,7 @@ def exec_and_collects(argv, dry_run=False):
 def write_file(filename, data, dry_run=False):
     log("+ [write '{}']\n{}".format(filename, data))
     if not dry_run:
-        with open(filename, "w", "utf-8") as f:
+        with open(filename, "w", "utf-8", errors='surrogateescape') as f:
             f.write(data)
     else:
         log("*** Dry run ***\n")
@@ -74,7 +74,7 @@ class DebBackend(BaseBackend):
             
             found = False
             data = []
-            with open(filename, "r", encoding="utf-8") as f:
+            with open(filename, "r", encoding="utf-8", errors='surrogateescape') as f:
                 for line in f:
                     if line.strip().startswith("#"):
                         data.append(line)
@@ -90,7 +90,7 @@ class DebBackend(BaseBackend):
             if found:
                 new_filename = "%s.new.nuvola" % filename
                 data = "".join(data)
-                with open(new_filename, "w", encoding="utf-8") as f:
+                with open(new_filename, "w", encoding="utf-8", errors='surrogateescape') as f:
                     f.write(data)
                 
                 try:
@@ -312,6 +312,7 @@ def main():
     parser.add_argument('--no-verify-ssl', action="store_true", default=False)
     args = parser.parse_args()
     
+    os.environ["LANG"] = "C"
     install(**vars(args))
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ def guess_dist():
     FEDORA_RELEASE_FILE = "/etc/fedora-release"
     if os.path.exists(FEDORA_RELEASE_FILE):
         try:
-            with open(FEDORA_RELEASE_FILE, "r", encoding="utf-8") as f:
+            with open(FEDORA_RELEASE_FILE, "r", encoding="utf-8", errors='surrogateescape') as f:
                 fedora_release = f.read().strip()
                 m = re.match(r"fedora\s+release\s+(\d+)", fedora_release.lower())
                 if m:

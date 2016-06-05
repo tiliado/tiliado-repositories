@@ -249,6 +249,9 @@ class Installer:
         try:
             while True:
                 running, data = self._queue.get_nowait()
+                if hasattr(data, "encode"):
+                    data = data.encode("utf-8", errors='backslashreplace').decode("utf-8")
+                
                 if running:
                     sys.stdout.write(data)
                     sys.stdout.flush()
