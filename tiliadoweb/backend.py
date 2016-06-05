@@ -1,3 +1,4 @@
+import glob
 import os
 import sys
 import subprocess
@@ -30,6 +31,9 @@ class BaseBackend:
     
     def prepare(self):
         pass
+    
+    def disable_conflicting_repositories(self, protocol, server, products):
+        pass
 
 class DebBackend(BaseBackend):
     DEFAULT_KEY = "40554B8FA5FE6F6A"
@@ -52,6 +56,48 @@ class DebBackend(BaseBackend):
         except subprocess.CalledProcessError as e:
             log(str(e))
     
+    def disable_conflicting_repositories(self, protocol, server, products):
+        log("+ [disable repos: %s => %s]" % (server, ", ".join(products)))
+        pattern = "{server}/{project}/repository/deb"
+        find = [
+            pattern.format(server=server, project=product)
+            for product in products
+        ]
+        files = ["/etc/apt/sources.list"] + glob.glob("/etc/apt/sources.list.d/*")
+        for filename in (f for f in files if os.path.isfile(f)):
+            if filename.endswith(".new.nuvola"):
+                try:
+                    os.unlink(filename)
+                except Exception:
+                    pass
+                continue
+            
+            found = False
+            data = []
+            with open(filename, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip().startswith("#"):
+                        data.append(line)
+                    else:
+                        for match in find:
+                            if match in line:
+                                log("Disabled in file '%s':\n    %s" % (filename, line.rstrip()))
+                                data.append("# " + line)
+                                found = True
+                                break
+                        else:
+                            data.append(line)
+            if found:
+                new_filename = "%s.new.nuvola" % filename
+                data = "".join(data)
+                with open(new_filename, "w", encoding="utf-8") as f:
+                    f.write(data)
+                
+                try:
+                    os.replace(new_filename, filename)
+                except Exception as e:
+                    log("Failed to replace file '%s' with '%s'. %s" % (filename, new_filename, e))
+                   
     def add_repositories(self, protocol, server, username, token, products, dist_release, variants):
         protocol = protocol or "https"
         variants = " ".join(variants)
@@ -233,6 +279,7 @@ def install(server, protocol, project, distribution, release, variants, username
             backend.remove_packages(install)
         
         backend.add_key(backend.DEFAULT_KEY)
+        backend.disable_conflicting_repositories(protocol, server, project.split(","))
         backend.add_repositories(protocol, server, username, token, project.split(","), release, variants.split(","))
         backend.update_db()
         
