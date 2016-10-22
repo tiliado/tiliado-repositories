@@ -120,8 +120,15 @@ class DebBackend(BaseBackend):
             write_file(filename, apt_line, dry_run=self.dry_run)
     
     def add_key(self, key):
-        argv = ["apt-key", "adv", "--keyserver", "hkp://keyserver.ubuntu.com:80", "--recv-keys", key]
+        key_path = "/tmp/%s.gpg" % key
+        rm_key = ["rm", "-fv", key_path]
+        exec_and_collects(rm_key, dry_run=self.dry_run)
+        argv = ["wget", "-O", key_path, "http://keyserver.ubuntu.com/pks/lookup?search=0x{}&op=get".format(key)]
         exec_and_collects(argv, dry_run=self.dry_run)
+        argv = ["apt-key", "add", key_path]
+        exec_and_collects(argv, dry_run=self.dry_run)
+        exec_and_collects(rm_key, dry_run=self.dry_run)
+        
     
     def update_db(self):
         argv = ["apt-get", "update"] + self.apt_opts
