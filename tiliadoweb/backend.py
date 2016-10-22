@@ -106,6 +106,8 @@ class DebBackend(BaseBackend):
         if not self.dry_run:
             os.makedirs(sources_dir, exist_ok=True)
         
+        arch = os.uname()[4]
+        log("+ [arch '{}']".format(arch))
         auth = "{}:{}@".format(username, token) if username and token else ""
         for product in products:
             filename = "{}/tiliado-{}.list".format(sources_dir, product)
@@ -233,6 +235,7 @@ class DnfBackend(BaseBackend):
                     raise e
         
         arch = os.uname()[4]
+        log("+ [arch '{}']".format(arch))
         if arch != 'x86_64':
             arch = 'i686'
         

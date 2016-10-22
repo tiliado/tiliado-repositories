@@ -1,5 +1,6 @@
 from gi.repository import Gtk, GLib
 from collections import namedtuple
+import os
 
 escape_text = GLib.markup_escape_text
 
@@ -109,6 +110,9 @@ class RepositoriesPage(Page):
         self.repositories = repositories
         self.clear()
         self.ok_button.set_sensitive(False)
+        arch = os.uname()[4]
+        if arch not in ('x86_64', 'i386', 'i486', 'i586', 'i686'):
+            self.add_row(Gtk.Label(label="<b>Architecture '%s' is not supported.</b>" % arch, margin_bottom=5, use_markup=True, visible=True))
         
         group = None
         for index, repo in enumerate(repositories):
