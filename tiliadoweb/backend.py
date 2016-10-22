@@ -319,7 +319,7 @@ def main():
     parser.add_argument('--no-verify-ssl', action="store_true", default=False)
     args = parser.parse_args()
     
-    os.environ["LANG"] = "C"
+    os.environ["LANG"] = "C.UTF-8"
     install(**vars(args))
 
 if __name__ == "__main__":
